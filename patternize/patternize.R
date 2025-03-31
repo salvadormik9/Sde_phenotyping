@@ -1,0 +1,161 @@
+
+#### Setup ####
+
+## Set my working directory to Sde_phenotyping
+setwd("C:/Users/salva/Downloads/Sde_phenotyping")
+
+## Install and load dependencies ##
+
+#Install devtools to download patternize from GitHub 
+#install.packages("devtools")
+#library(devtools)
+#install_github("StevenVB12/patternize")
+
+
+#Install the following packages to get the patternize functions patLanRGB and patLanK
+#install.packages("Morpho")
+#devtools::install_github("zarquon42b/Morpho")
+
+#Install BiocManager and EBImage to read in the images 
+#install.packages("BiocManager")
+#BiocManager::install("EBImage")
+
+
+#Install raster to read in the images
+#install.packages("raster")
+
+## Load packages ##
+library(patternize)
+library(Morpho)
+library(devtools)
+library(raster)
+library(viridis)
+
+#### Old Code ####
+# ## Read in image ## 
+# 
+# img_path <- "C:/Users/salva/Downloads/Sde_phenotyping/morphometric_photos/sandbox/best quality/P7170195.JPG"
+# 
+# img <- readImage(img_path) #EBImage format
+# 
+# #Convert to raster by creating an R-native raster-like object
+# img_raster <- brick(as.array(img)) 
+# #display(img): this is used to check that the image can be displayed
+# 
+# #Ensure raster has corrent extent and projection
+# extent(img_raster) <- extent(0, dim(img)[2], 0, dim(img)[1])
+# crs(img_raster) <- NA 
+# 
+# 
+# image_list <- list(sample1 = stack(img_raster))
+# 
+# 
+# ## Read and process landmarks ##
+# landmarks_path <- "C:/Users/salva/Downloads/Sde_phenotyping/morphometric_photos/sandbox/best quality/P7170195_XYCoordinates.txt"
+# 
+# landmarks <- read.table(landmarks_path, header = FALSE, stringsAsFactors = FALSE)
+# colnames(landmarks) <- c("X", "Y")
+# 
+# landmarks_list <- list(sample1 = landmarks)
+# landmarks_list$sample1 <- as.data.frame(sapply(landmarks_list$sample1, as.numeric))
+# 
+# 
+# ## Set RGB value
+# RGB <- colMeans(as.array(img), dims = 2)
+# RGB <- as.numeric(RGB)
+# 
+# RGB <- sampleRGB(image_list$sample1, resampleFactor = 1, crop = c(0,0,0,0))
+# 
+# #### Align the image based on provided landmarks ####
+# 
+# transformRef <- as.matrix(landmarks)
+# transformRef <- as.matrix(sapply(transformRef, as.numeric))
+# 
+# debugonce(patLanRGB) #find source of error with command patLanRGB
+# aligned <- patLanRGB(image_list, 
+#                      landmarks_list,
+#                      RGB,
+#                      transformRef = transformRef,
+#                      resampleFactor = 1,
+#                      adjustCoords = TRUE,
+#                      plot = FALSE)
+# 
+# imageShow(aligned)
+# 
+# ## Save the aligned image
+# output_path <- "path/to/save/aligned_image.jpg"  # Replace with desired output path
+# imageWrite(aligned, output_path)
+
+
+####New Code (Based on Patternize Tutorial) ####
+
+#List with samples
+IDlist <- c('P9051000',
+            'P9051078',
+            'P9061511')
+
+
+#Make list with landmarks
+
+prepath <- 'patternize/landmarks'
+extension <- "_cc_landmarks.txt"
+landmarkList <- makeList(IDlist, 'landmark', prepath, extension)
+
+#Make list with images
+prepath <- 'patternize/images'
+extension <- '_cc.jpeg'
+imageList <- makeList(IDlist, 'image', prepath, extension)
+
+
+#transformref
+target <- landmarkList[['P9051000']]
+
+#run alignment of color patterns
+RGB <- c(0,0,0)
+rasterList_lanRGB <- patLanRGB(imageList, landmarkList, RGB, transformRef = target, resampleFactor = 3, 
+                               colOffset = 0.15, crop = TRUE, res = 200, adjustCoords = TRUE, plot = 'stack')
+
+# sum the colorpatterns
+summedRaster_lanRGB <- sumRaster(rasterList_lanRGB, IDlist, type = 'RGB')
+
+# plot heatmap
+outline_P9051000 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/cartoon/P9051000_cc_outline.txt", h= F)
+# lines_P9051000 <- list.files(path='cartoon',
+#                            full.names = T)
+
+colfunc <- inferno(100)
+plotHeat(summedRaster_lanRGB, IDlist, plotCartoon = TRUE, refShape = 'target', outline = outline_P9051000, 
+          landList = landmarkList, adjustCoords = TRUE,
+         imageList = imageList, cartoonID = 'P9051000', cartoonFill = 'black', cartoonOrder = 'under', 
+         colpalette = colfunc)
+
+
+
+#### Recolorize and Patternize Workflow ####
+
+#same Image List, ID list, Landmark List as above
+
+
+
+#We are using a different target image
+target <- landmarkList[['P9051078']]
+
+mask1 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/masks/P9051078_cc_polygonmask.txt", header = FALSE)
+# mask2 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/masks/P9051078_cc_analfin_mask.txt", header = FALSE)
+# mask3 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/masks/P9051078_cc_dorsalfin_mask.txt", header = FALSE)
+# mask4 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/masks/P9051078_cc_pelvicfin_mask.txt", header = FALSE)
+# mask5 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/masks/P9051078_cc_pectoralfin_mask.txt", header = FALSE)
+
+options(expressions = 5000)
+
+imageList_aligned <- alignLan(imageList, landmarkList, transformRef = target, 
+                              adjustCoords = TRUE,
+                              plotTransformed = TRUE, 
+                              resampleFactor = 5, 
+                              cartoonID = 'P9051078')
+                              maskOutline = mask1, 
+                              inverse = list(FALSE))
+
+
+
+
