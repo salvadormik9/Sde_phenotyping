@@ -119,7 +119,7 @@ rasterList_lanRGB <- patLanRGB(imageList, landmarkList, RGB, transformRef = targ
 summedRaster_lanRGB <- sumRaster(rasterList_lanRGB, IDlist, type = 'RGB')
 
 # plot heatmap
-outline_P9051000 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/cartoon/P9051000_cc_outline.txt", h= F)
+outline_P9051000 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping_new/patternize/cartoon/P9051000_cc_outline.txt", h= F)
 # lines_P9051000 <- list.files(path='cartoon',
 #                            full.names = T)
 
@@ -133,29 +133,39 @@ plotHeat(summedRaster_lanRGB, IDlist, plotCartoon = TRUE, refShape = 'target', o
 
 #### Recolorize and Patternize Workflow ####
 
+
+##Aligning images: still in progress
+
 #same Image List, ID list, Landmark List as above
-
-
-
 #We are using a different target image
-target <- landmarkList[['P9051078']]
-
-mask1 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/masks/P9051078_cc_polygonmask.txt", header = FALSE)
-# mask2 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/masks/P9051078_cc_analfin_mask.txt", header = FALSE)
-# mask3 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/masks/P9051078_cc_dorsalfin_mask.txt", header = FALSE)
-# mask4 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/masks/P9051078_cc_pelvicfin_mask.txt", header = FALSE)
-# mask5 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/masks/P9051078_cc_pectoralfin_mask.txt", header = FALSE)
-
-options(expressions = 5000)
-
-imageList_aligned <- alignLan(imageList, landmarkList, transformRef = target, 
-                              adjustCoords = TRUE,
-                              plotTransformed = TRUE, 
-                              resampleFactor = 5, 
-                              cartoonID = 'P9051078')
-                              maskOutline = mask1, 
-                              inverse = list(FALSE))
-
-
+# target <- landmarkList[['P9051078']]
+# 
+# mask1 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/masks/P9051078_cc_polygonmask.txt", header = FALSE)
+# # mask2 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/masks/P9051078_cc_analfin_mask.txt", header = FALSE)
+# # mask3 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/masks/P9051078_cc_dorsalfin_mask.txt", header = FALSE)
+# # mask4 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/masks/P9051078_cc_pelvicfin_mask.txt", header = FALSE)
+# # mask5 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping/patternize/masks/P9051078_cc_pectoralfin_mask.txt", header = FALSE)
+# 
+# # options(expressions = 5000)
+# # 
+# # imageList_aligned <- alignLan(imageList, landmarkList, transformRef = target, 
+# #                               adjustCoords = TRUE,
+# #                               plotTransformed = TRUE, 
+# #                               resampleFactor = 5, 
+# #                               cartoonID = 'P9051078')
+# #                               maskOutline = mask1, 
+# #                               inverse = list(FALSE))
 
 
+
+## Segment images in recolorize 
+
+library(recolorize)
+
+# convert from RasterBricks to image arrays using the brick_to_array function:
+imgs <- lapply(imageList, brick_to_array)
+names(imgs) <- names(imageList)
+
+
+# save raster extents for later conversion:
+extent_list <- lapply(imageList_aligned, raster::extent)
