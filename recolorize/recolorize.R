@@ -21,6 +21,7 @@ library(recolorize)
 # get the path to the image (comes with the package, so we use system.file):
 img <- "C:/Users/salva/Downloads/Sde_phenotyping_new/recolorize/P7170195_input_test1_bgrm_cc.png"
 img2 <- "C:/Users/salva/Downloads/Sde_phenotyping_new/recolorize/recolorize_input_test2_bgrm_cc.png"
+  #Image 2 has more distinct orange coloration around the operculum. 
 
 # fit a color map
 #Parameters, bins into 64 total clusters (4^3 = 64) and cutoff similarity for grouping color centers together = 45%
