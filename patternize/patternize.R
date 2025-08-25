@@ -32,6 +32,8 @@ library(raster)
 library(viridis)
 
 ####New Code (Based on Patternize Tutorial) ####
+#Patternize Step-by-Step Tutorial: https://github.com/StevenVB12/patternize
+#Patternize Examples: https://github.com/StevenVB12/patternize-examples
 
 #List with samples
 IDlist <- c('P9051000',
@@ -75,7 +77,7 @@ plotHeat(summedRaster_lanRGB, IDlist, plotCartoon = TRUE, refShape = 'target', o
 
 
 
-#### Patternize With Edited Images ####
+#### Patternize With Color-Corrected Edited Images ####
 #Make list with images
 prepath <- 'patternize/images'
 extension <- '_cc_extreme.jpeg'
@@ -113,6 +115,60 @@ plotHeat(summedRaster_lanRGB_extreme,
          adjustCoords = TRUE,
          imageList = imageList,
          cartoonID = 'P9051000', 
+         cartoonFill = 'black', 
+         cartoonOrder = 'under', 
+         colpalette = colfunc)
+
+#### Patternize With Color-Corrected Edited Images of Just the Head ####
+
+#Make list with images
+
+IDlist <- c('P9051000',
+            'P9051078',
+            'P9061511')
+
+prepath <- 'patternize/images'
+extension <- '_cc_extreme_head.jpeg'
+imageList <- makeList(IDlist, 'image', prepath, extension)
+
+#Make list with landmarks
+
+prepath <- 'patternize/landmarks'
+extension <- "_cc_extreme_head_landmarks.txt"
+landmarkList <- makeList(IDlist, 'landmark', prepath, extension)
+
+#transformref
+target <- landmarkList[['P9061511']]
+
+#run alignment of color patterns
+RGB <- c(0,0,0)
+rasterList_lanRGB_extreme <- patLanRGB(imageList, 
+                                       landmarkList,
+                                       RGB, 
+                                       transformRef = target, 
+                                       resampleFactor = 3, 
+                                       colOffset = 0.15, 
+                                       crop = TRUE,
+                                       res = 200,
+                                       adjustCoords = TRUE,
+                                       plot = 'stack')
+
+# sum the colorpatterns
+summedRaster_lanRGB_extreme <- sumRaster(rasterList_lanRGB_extreme, IDlist, type = 'RGB')
+
+# read in outline of one of the fish
+outline_P9061511 <- read.table("C:/Users/salva/Downloads/Sde_phenotyping_new/patternize/cartoon/P9061511_cc_outline_extreme_head.txt", h= F)
+
+#plot the heatmap
+colfunc <- inferno(100)
+plotHeat(summedRaster_lanRGB_extreme,
+         IDlist, plotCartoon = TRUE,
+         refShape = 'target',
+         outline = outline_P9061511, 
+         landList = landmarkList,
+         adjustCoords = TRUE,
+         imageList = imageList,
+         cartoonID = 'P9061511', 
          cartoonFill = 'black', 
          cartoonOrder = 'under', 
          colpalette = colfunc)
